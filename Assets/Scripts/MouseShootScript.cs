@@ -28,12 +28,16 @@ public class MouseShootScript : MonoBehaviour
 
 	private Vector3 mouseDownPos;
 
+    private LineRenderer lineRenderer;
+
 	private bool isDragging = false;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        lineRenderer = gameObject.GetComponent<LineRenderer>();
+        lineRenderer.SetPosition(0, this.transform.position);
+        lineRenderer.SetPosition(1, this.transform.position);
     }
 
     // Update is called once per frame
@@ -48,28 +52,23 @@ public class MouseShootScript : MonoBehaviour
 		if (Input.GetMouseButtonUp(0) && isDragging)
 		{
 			Debug.Log(power);
-			isDragging = false;
 			fire();
+			isDragging = false;
+            lineRenderer.SetPosition(1, this.transform.position);
 		}
 
 		if (isDragging)
 		{
-			Vector3 mouseDiff = Camera.main.ScreenToWorldPoint(Input.mousePosition) - mouseDownPos;
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 mouseDiff = mousePos - mouseDownPos;
 			power = Vector3.ClampMagnitude(mouseDiff, MaxPower).magnitude;
 			power = normalize_power(power, MaxPower, 0.0f, 0.0f, MaxNormPower);
-			drawPowerLine();
+
+            Vector3 dir = Quaternion.AngleAxis(90, Vector3.forward) * this.transform.right;
+            lineRenderer.SetPosition(1, dir.normalized * mouseDiff.magnitude);
 		}
     }
 
-	private void drawPowerLine()
-	{
-		var lineRenderer = gameObject.GetComponent<LineRenderer>();
-		if(lineRenderer != null)
-		{
-			lineRenderer.SetPosition(0, this.transform.position);
-			lineRenderer.SetPosition(1, this.transform.right * power);
-		}
-	}
 
 	private void fire()
 	{
